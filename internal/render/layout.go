@@ -19,6 +19,12 @@ func (renderer *Renderer) row(component a2ui.Component, surface *a2ui.Surface, w
 		blocks[i] = renderer.child(id, surface, widths[i], 0)
 		height = max(height, blocks[i].height())
 	}
+	for i, id := range component.Children {
+		child, ok := surface.Components[id]
+		if ok && child.Type == "Divider" && child.Axis == "vertical" {
+			blocks[i] = renderer.render(child, surface, widths[i], height)
+		}
+	}
 	for i := range blocks {
 		blocks[i] = blocks[i].fit(widths[i], height, component.Align)
 	}
@@ -90,6 +96,14 @@ func (renderer *Renderer) intrinsicWidth(id string, surface *a2ui.Surface, limit
 			width = max(width, renderer.intrinsicWidth(child, surface, limit))
 		}
 		return clamp(width, 1, limit)
+	case "Card":
+		inner := renderer.intrinsicWidth(component.Child, surface, max(limit-6, 1))
+		return clamp(inner+6, 1, limit)
+	case "Divider":
+		if component.Axis == "vertical" {
+			return 1
+		}
+		return max(limit, 1)
 	default:
 		return clamp(lipgloss.Width("["+component.Type+"]"), 1, limit)
 	}

@@ -7,6 +7,8 @@ type Component struct {
 	Text     string   `json:"text,omitempty"`
 	Variant  string   `json:"variant,omitempty"`
 	Children []string `json:"children,omitempty"`
+	Child    string   `json:"child,omitempty"`
 	Justify  string   `json:"justify,omitempty"`
 	Align    string   `json:"align,omitempty"`
+	Axis     string   `json:"axis,omitempty"`
 }

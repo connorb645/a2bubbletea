@@ -54,18 +54,61 @@ func TestRenderColumnCenter(t *testing.T) {
 	}
 }
 
-func TestRenderPlaceholder(t *testing.T) {
+func TestRenderCard(t *testing.T) {
 	surface := surfaceWith(
-		a2ui.Component{ID: "root", Type: "Card"},
+		a2ui.Component{ID: "root", Type: "Card", Child: "text"},
+		a2ui.Component{ID: "text", Type: "Text", Text: "Hi"},
 	)
 
-	if got := New().Render(surface, 20); !strings.Contains(got, "[Card]") {
+	lines := strings.Split(New().Render(surface, 20), "\n")
+	if len(lines) != 5 {
+		t.Fatalf("got %d lines, want 5", len(lines))
+	}
+	for _, line := range lines {
+		if width := lipgloss.Width(line); width != 20 {
+			t.Fatalf("line width = %d, want 20: %q", width, line)
+		}
+	}
+	if !strings.Contains(lines[0], "╭") || !strings.Contains(lines[4], "╰") {
+		t.Fatalf("missing rounded border: %q", strings.Join(lines, "\n"))
+	}
+}
+
+func TestRenderDivider(t *testing.T) {
+	surface := surfaceWith(
+		a2ui.Component{ID: "root", Type: "Divider", Axis: "horizontal"},
+	)
+
+	if got := New().Render(surface, 10); got != "──────────" {
+		t.Fatalf("rendered = %q", got)
+	}
+}
+
+func TestRenderVerticalDivider(t *testing.T) {
+	surface := surfaceWith(
+		a2ui.Component{ID: "root", Type: "Row", Children: []string{"left", "rule", "right"}, Justify: "spaceBetween"},
+		a2ui.Component{ID: "left", Type: "Text", Text: "A"},
+		a2ui.Component{ID: "rule", Type: "Divider", Axis: "vertical"},
+		a2ui.Component{ID: "right", Type: "Text", Text: "B"},
+	)
+
+	if got := New().Render(surface, 5); !strings.Contains(got, "│") {
+		t.Fatalf("rendered = %q", got)
+	}
+}
+
+func TestRenderPlaceholder(t *testing.T) {
+	surface := surfaceWith(
+		a2ui.Component{ID: "root", Type: "Button"},
+	)
+
+	if got := New().Render(surface, 20); !strings.Contains(got, "[Button]") {
 		t.Fatalf("rendered = %q", got)
 	}
 }
 
 func TestRenderSample(t *testing.T) {
-	file, err := os.Open("../../samples/text.jsonl")
+	file, err := os.Open("../../samples/static-layout.jsonl")
 	if err != nil {
 		t.Fatalf("open sample: %v", err)
 	}
@@ -90,7 +133,19 @@ func TestRenderSample(t *testing.T) {
 	}
 
 	rendered := New().Render(surface, 80)
-	for _, want := range []string{"A2UI v1.0", "Bubble Tea"} {
+	for _, want := range []string{
+		"Austin, TX",
+		"72°",
+		"58°",
+		"Clear skies with light breeze.",
+		"Bubble Tea",
+		"A2UI v1.0",
+		"Terminal",
+		"Static layout sample: Text, Row, Column, Card, Divider.",
+		"─",
+		"│",
+		"╭",
+	} {
 		if !strings.Contains(rendered, want) {
 			t.Errorf("rendered output missing %q", want)
 		}
