@@ -19,4 +19,16 @@ make lint
 make test
 ```
 
+## Specification
+
+The A2UI v1.0 schemas, test cases and basic catalog are a git submodule at
+`specification/a2ui`, pinned at commit
+`b817d0296010075ce230fdd720f00e32cd07b775` (23 October 2026). Fetch it with:
+
+```sh
+git submodule update --init specification/a2ui
+```
+
+See [specification/README.md](specification/README.md) for the paths inside it.
+
 Licensed under MIT.
