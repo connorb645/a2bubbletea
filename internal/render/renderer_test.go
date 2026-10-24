@@ -10,7 +10,9 @@ import (
 )
 
 func TestRenderText(t *testing.T) {
-	surface := surfaceWith(a2ui.Component{ID: "root", Type: "Text", Text: "Hello"})
+	surface := surfaceWith(
+		a2ui.Component{ID: "root", Type: "Text", Text: "Hello"},
+	)
 
 	if got := New().Render(surface, 20); !strings.Contains(got, "Hello") {
 		t.Fatalf("rendered = %q", got)
@@ -18,7 +20,9 @@ func TestRenderText(t *testing.T) {
 }
 
 func TestRenderHeading(t *testing.T) {
-	surface := surfaceWith(a2ui.Component{ID: "root", Type: "Text", Text: "# Title"})
+	surface := surfaceWith(
+		a2ui.Component{ID: "root", Type: "Text", Text: "# Title"},
+	)
 
 	rendered := New().Render(surface, 20)
 	if !strings.Contains(rendered, "Title") || strings.Contains(rendered, "#") {
@@ -26,10 +30,36 @@ func TestRenderHeading(t *testing.T) {
 	}
 }
 
-func TestRenderPlaceholder(t *testing.T) {
-	surface := surfaceWith(a2ui.Component{ID: "root", Type: "Row"})
+func TestRenderRowSpaceBetween(t *testing.T) {
+	surface := surfaceWith(
+		a2ui.Component{ID: "root", Type: "Row", Children: []string{"left", "right"}, Justify: "spaceBetween"},
+		a2ui.Component{ID: "left", Type: "Text", Text: "A"},
+		a2ui.Component{ID: "right", Type: "Text", Text: "B"},
+	)
 
-	if got := New().Render(surface, 20); !strings.Contains(got, "[Row]") {
+	lines := strings.Split(New().Render(surface, 10), "\n")
+	if len(lines) != 1 || lines[0] != "A        B" {
+		t.Fatalf("rendered = %q", lines)
+	}
+}
+
+func TestRenderColumnCenter(t *testing.T) {
+	surface := surfaceWith(
+		a2ui.Component{ID: "root", Type: "Column", Children: []string{"text"}, Align: "center"},
+		a2ui.Component{ID: "text", Type: "Text", Text: "A"},
+	)
+
+	if got := New().Render(surface, 5); got != "  A  " {
+		t.Fatalf("rendered = %q", got)
+	}
+}
+
+func TestRenderPlaceholder(t *testing.T) {
+	surface := surfaceWith(
+		a2ui.Component{ID: "root", Type: "Card"},
+	)
+
+	if got := New().Render(surface, 20); !strings.Contains(got, "[Card]") {
 		t.Fatalf("rendered = %q", got)
 	}
 }
@@ -60,8 +90,10 @@ func TestRenderSample(t *testing.T) {
 	}
 
 	rendered := New().Render(surface, 80)
-	if !strings.Contains(rendered, "A2UI v1.0") {
-		t.Fatalf("rendered = %q", rendered)
+	for _, want := range []string{"A2UI v1.0", "Bubble Tea"} {
+		if !strings.Contains(rendered, want) {
+			t.Errorf("rendered output missing %q", want)
+		}
 	}
 	for _, line := range strings.Split(rendered, "\n") {
 		if width := lipgloss.Width(line); width > 80 {
@@ -70,6 +102,10 @@ func TestRenderSample(t *testing.T) {
 	}
 }
 
-func surfaceWith(root a2ui.Component) *a2ui.Surface {
-	return &a2ui.Surface{Components: map[string]a2ui.Component{"root": root}}
+func surfaceWith(components ...a2ui.Component) *a2ui.Surface {
+	surface := &a2ui.Surface{Components: map[string]a2ui.Component{}}
+	for _, component := range components {
+		surface.Components[component.ID] = component
+	}
+	return surface
 }

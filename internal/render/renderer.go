@@ -23,25 +23,48 @@ func (renderer *Renderer) Render(surface *a2ui.Surface, width int) string {
 
 	root, ok := surface.Components["root"]
 	if !ok {
-		return renderer.theme.Caption.Width(width).Render("waiting for a root component")
+		return renderer.placeholder("waiting for a root component", width).lines[0]
 	}
-	return renderer.render(root, width)
+	return strings.Join(renderer.render(root, surface, width, 0).lines, "\n")
 }
 
-func (renderer *Renderer) render(component a2ui.Component, width int) string {
-	if component.Type != "Text" {
-		return renderer.theme.Caption.Width(width).Render("[" + component.Type + "]")
-	}
+func (renderer *Renderer) render(component a2ui.Component, surface *a2ui.Surface, width, height int) block {
+	width = max(width, 1)
 
+	switch component.Type {
+	case "Text":
+		return renderer.text(component, width)
+	case "Row":
+		return renderer.row(component, surface, width)
+	case "Column":
+		return renderer.column(component, surface, width, height)
+	default:
+		return renderer.placeholder(component.Type, width)
+	}
+}
+
+func (renderer *Renderer) text(component a2ui.Component, width int) block {
 	style := renderer.theme.Body
 	if component.Variant == "caption" {
 		style = renderer.theme.Caption
 	}
 	if title, ok := heading(component.Text); ok {
 		style = renderer.theme.Heading
-		return style.Width(width).Render(title)
+		return newBlock(style.Width(width).Render(title))
 	}
-	return style.Width(width).Render(component.Text)
+	return newBlock(style.Width(width).Render(component.Text))
+}
+
+func (renderer *Renderer) placeholder(name string, width int) block {
+	return newBlock(renderer.theme.Caption.Width(width).Render("[" + name + "]"))
+}
+
+func (renderer *Renderer) child(id string, surface *a2ui.Surface, width, height int) block {
+	child, ok := surface.Components[id]
+	if !ok {
+		return renderer.placeholder("missing: "+id, width)
+	}
+	return renderer.render(child, surface, width, height)
 }
 
 func heading(text string) (string, bool) {
