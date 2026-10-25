@@ -1,0 +1,3 @@
+[submodule "specification/a2ui"]
+	path = specification/a2ui
+	url = https://github.com/a2ui-project/a2ui
