@@ -38,6 +38,10 @@ func (renderer *Renderer) render(component a2ui.Component, surface *a2ui.Surface
 		return renderer.row(component, surface, width)
 	case "Column":
 		return renderer.column(component, surface, width, height)
+	case "Card":
+		return renderer.card(component, surface, width)
+	case "Divider":
+		return renderer.divider(component, width, height)
 	default:
 		return renderer.placeholder(component.Type, width)
 	}
@@ -53,6 +57,21 @@ func (renderer *Renderer) text(component a2ui.Component, width int) block {
 		return newBlock(style.Width(width).Render(title))
 	}
 	return newBlock(style.Width(width).Render(component.Text))
+}
+
+func (renderer *Renderer) card(component a2ui.Component, surface *a2ui.Surface, width int) block {
+	cardWidth := max(width-2, 1)
+	contentWidth := max(cardWidth-4, 1)
+	content := renderer.child(component.Child, surface, contentWidth, 0)
+	return newBlock(renderer.theme.Card.Width(cardWidth).Render(strings.Join(content.lines, "\n")))
+}
+
+func (renderer *Renderer) divider(component a2ui.Component, width, height int) block {
+	if component.Axis == "vertical" {
+		height = max(height, 1)
+		return newBlock(renderer.theme.Divider.Render(strings.Repeat("│\n", height-1) + "│"))
+	}
+	return newBlock(renderer.theme.Divider.Render(strings.Repeat("─", width)))
 }
 
 func (renderer *Renderer) placeholder(name string, width int) block {
