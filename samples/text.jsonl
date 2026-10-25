@@ -1,0 +1,2 @@
+{"version":"v1.0","createSurface":{"surfaceId":"text","catalogId":"https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json"}}
+{"version":"v1.0","updateComponents":{"surfaceId":"text","components":[{"id":"root","component":"Text","text":"# A2UI v1.0"}]}}
